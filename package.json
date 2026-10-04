@@ -1,0 +1,60 @@
+{
+  "name": "bepaid-mcp",
+  "version": "0.1.0",
+  "description": "Unofficial MCP server for the bePaid payment gateway: transaction reports and exports, payment links, optional payer roster matching",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "bepaid",
+    "payments",
+    "belarus",
+    "claude"
+  ],
+  "license": "MIT",
+  "author": "OraCool",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OraCool/bepaid-mcp.git"
+  },
+  "homepage": "https://github.com/OraCool/bepaid-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/OraCool/bepaid-mcp/issues"
+  },
+  "type": "module",
+  "bin": {
+    "bepaid-mcp": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist/**/*.js",
+    "docs/credentials.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node --env-file-if-exists=.env dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "inspect": "npx @modelcontextprotocol/inspector node --env-file-if-exists=.env dist/index.js",
+    "prepublishOnly": "npm run build && npm test",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.0",
+    "exceljs": "^4.4.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "@vitest/coverage-v8": "^5.0.3",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
+  }
+}
