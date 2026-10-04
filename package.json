@@ -1,6 +1,6 @@
 {
   "name": "bepaid-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Unofficial MCP server for the bePaid payment gateway: transaction reports and exports, payment links, optional payer roster matching",
   "keywords": [
     "mcp",
