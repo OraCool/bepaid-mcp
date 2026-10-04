@@ -18,7 +18,7 @@ Always available:
 | Tool | Purpose |
 |---|---|
 | `bepaid_list_transactions` | Transactions for a period (compact rows + totals) |
-| `bepaid_get_transaction` | Lookup by `uid` or `tracking_id`; also finds test transactions |
+| `bepaid_get_transaction` | Lookup by `uid`, `tracking_id` or back-office `order_id`; live status with bePaid code and message |
 | `bepaid_export_transactions` | All transactions of a period to a new XLSX (summary + transactions) or CSV |
 | `bepaid_create_payment_link` | One-off payment link: amount, description, `tracking_id`, payer fields |
 

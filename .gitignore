@@ -8,3 +8,5 @@ exports/
 private/
 coverage/
 .scannerwork/
+.env.*
+!.env.example

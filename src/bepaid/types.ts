@@ -40,6 +40,9 @@ export const transactionSchema = z.looseObject({
     })
     .nullish(),
   receipt_url: z.string().nullish(),
+  code: z.string().nullish(), // e.g. "S.0000", "P.4012" (letter = status, digits = service code)
+  message: z.string().nullish(),
+  friendly_message: z.string().nullish(),
 });
 export type Transaction = z.infer<typeof transactionSchema>;
 

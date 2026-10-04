@@ -55,9 +55,13 @@ stdio MCP server built on the official `@modelcontextprotocol/sdk` (`McpServer.r
   phones, shop sites, receipts, local paths) — not even as reformatted examples. Use invented values such as
   `pay.example.by`, groups `Альфа-25.1` / `Бета 25`, phone `+375 29 123-45-67`.
 - The roster workbook is only read; exports always go to new files in `EXPORT_DIR`.
-- Payment links default to test mode; real links require `BEPAID_TEST_MODE=false`.
+- Payment links default to test mode (also when the flag is absent); real links require `BEPAID_TEST_MODE=false`.
+- Response codes: `<letter>.<4 digits>` — S success, P pending/awaiting customer, F declined, E bePaid error;
+  digits name the service (4000–4999 = 3-D Secure).
 - Credentials/onboarding steps live in `docs/credentials.md`; keep it limited to what bePaid docs confirm.
 - `private/`, `.env`, `exports/` and `coverage/` are git-ignored; never reference local-only files from tracked files.
-- Observed in production: the report API omits test transactions; the gateway tracking_id lookup returns
+- Observed in production: report timestamps are wall-clock times in the requested `time_zone` but suffixed `Z`
+  (`src/bepaid/timeZone.ts` converts them back to UTC in `iterateTransactions`; `settled_at` is a date only);
+  the report API omits test transactions; the gateway tracking_id lookup returns
   `{transactions: [...]}` with `id` = uid string (reports use numeric ids). Card `issuer_country` is always set.
 - Unverified bePaid details: report page size, rate limits, `tracking_id` max length/charset.

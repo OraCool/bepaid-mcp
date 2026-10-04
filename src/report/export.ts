@@ -105,7 +105,7 @@ function flat(p: PaymentRow, group: string, payer: string, candidates?: string):
   return {
     group,
     payer,
-    paidAt: p.paidAt,
+    paidAt: p.paidAt ?? p.createdAt,
     amount: Number(p.amount),
     currency: p.currency,
     meeting: p.meeting,

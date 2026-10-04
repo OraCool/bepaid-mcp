@@ -1,4 +1,5 @@
 import { BEPAID_HOSTS, BepaidClient } from "./client.js";
+import { wallClockToUtc } from "./timeZone.js";
 import {
   DATE_TYPES,
   PAYMENT_METHOD_TYPES,
@@ -51,13 +52,24 @@ export async function* iterateTransactions(
       for (const transaction of result.transactions) {
         if (seen.has(transaction.uid)) continue;
         seen.add(transaction.uid);
-        yield transaction;
+        yield toUtcTimestamps(transaction, query.timeZone);
       }
       const next = result.last_object_id ?? undefined;
       if (!result.has_more || next === undefined || next === startingAfter) break;
       startingAfter = next;
     }
   }
+}
+
+// Report timestamps are wall-clock times in the requested time_zone despite their "Z" suffix.
+const TIMESTAMP_FIELDS = ["created_at", "paid_at", "updated_at", "manually_corrected_at"] as const;
+
+function toUtcTimestamps(transaction: Transaction, timeZone: string): Transaction {
+  const fixed: Record<string, unknown> = { ...transaction };
+  for (const field of TIMESTAMP_FIELDS) {
+    if (typeof fixed[field] === "string") fixed[field] = wallClockToUtc(fixed[field] as string, timeZone);
+  }
+  return fixed as Transaction;
 }
 
 export async function collectTransactions(client: BepaidClient, query: ReportQuery): Promise<Transaction[]> {

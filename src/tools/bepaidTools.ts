@@ -2,7 +2,8 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { createCheckout } from "../bepaid/checkout.js";
 import { collectTransactions } from "../bepaid/reports.js";
-import { getTransactionByUid, getTransactionsByTrackingId } from "../bepaid/transactions.js";
+import { findTransactionByOrderId, getTransactionByUid, getTransactionsByTrackingId } from "../bepaid/transactions.js";
+import type { Transaction } from "../bepaid/types.js";
 import { REPORT_STATUSES } from "../bepaid/types.js";
 import { matchTransaction } from "../matching/match.js";
 import { toMinorUnits } from "../money.js";
@@ -42,25 +43,39 @@ export function registerBepaidTools(server: McpServer, ctx: ToolContext) {
     {
       title: "Get bePaid transaction",
       description:
-        "Looks up a transaction by its uid, or all transactions with a given tracking_id. Also finds test " +
-        "transactions, which the report API does not return. With a roster configured, shows the matched group/payer.",
+        "Looks up a transaction by its uid, by order_id (the number in back-office URLs /merchant/orders/<order_id>), " +
+        "or all transactions with a given tracking_id. Shows live status with the bePaid response code and message. " +
+        "uid/tracking_id lookups also find test transactions, which reports do not return. " +
+        "With a roster configured, shows the matched group/payer.",
       inputSchema: {
         uid: z.string().optional(),
         tracking_id: z.string().optional(),
+        order_id: z.union([z.string(), z.number()]).optional().describe("Back-office order number"),
+        search_days: z
+          .number()
+          .int()
+          .min(1)
+          .max(366)
+          .default(90)
+          .describe("order_id only: how many days back to search (by creation date)"),
       },
       annotations: READ_ONLY,
     },
-    safe(async ({ uid, tracking_id }) => {
-      if (Boolean(uid) === Boolean(tracking_id)) throw new Error("Provide exactly one of uid or tracking_id");
-      const transactions = uid
-        ? [await getTransactionByUid(ctx.client, uid)]
-        : await getTransactionsByTrackingId(ctx.client, tracking_id!);
+    safe(async ({ uid, tracking_id, order_id, search_days }) => {
+      const given = [uid, tracking_id, order_id].filter((v) => v !== undefined && v !== "");
+      if (given.length !== 1) throw new Error("Provide exactly one of uid, tracking_id or order_id");
+      let transactions: Transaction[];
+      if (uid) transactions = [await getTransactionByUid(ctx.client, uid)];
+      else if (tracking_id) transactions = await getTransactionsByTrackingId(ctx.client, tracking_id);
+      else transactions = await lookupOrder(ctx, String(order_id), search_days);
       const roster = ctx.rosterEnabled ? await ctx.getRoster() : undefined;
       return jsonResult(
         transactions.map((tx) => ({
           ...toPaymentRow(tx),
           type: tx.type,
           status: tx.status,
+          code: tx.code ?? undefined,
+          message: tx.friendly_message ?? tx.message ?? undefined,
           receipt_url: tx.receipt_url,
           ...(roster && { match: describeMatch(matchTransaction(tx, roster)) }),
         })),
@@ -143,6 +158,18 @@ export function registerBepaidTools(server: McpServer, ctx: ToolContext) {
       });
     }),
   );
+}
+
+async function lookupOrder(ctx: ToolContext, orderId: string, days: number): Promise<Transaction[]> {
+  const to = new Date();
+  const from = new Date(to.getTime() - days * 86_400_000);
+  const transaction = await findTransactionByOrderId(ctx.client, orderId, {
+    from: from.toISOString().slice(0, 10),
+    to: to.toISOString().slice(0, 10),
+    timeZone: ctx.config.timeZone,
+  });
+  if (!transaction) throw new Error(`No transaction with order_id ${orderId} created in the last ${days} days (test transactions are not searchable by order_id)`);
+  return [transaction];
 }
 
 function describeMatch(match: ReturnType<typeof matchTransaction>) {

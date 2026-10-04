@@ -6,7 +6,8 @@ import { type PaymentOrigin, paymentOrigin } from "./origin.js";
 
 export interface PaymentRow {
   uid: string;
-  paidAt?: string;
+  createdAt?: string;
+  paidAt?: string; // only set when the transaction was paid
   amount: string; // major units, "550.00"
   currency: string;
   description?: string;
@@ -67,7 +68,8 @@ export function toPaymentRow(tx: Transaction): PaymentRow {
   const billingName = [tx.billing_address?.first_name, tx.billing_address?.last_name].filter(Boolean).join(" ");
   return {
     uid: tx.uid,
-    paidAt: tx.paid_at ?? tx.created_at ?? undefined,
+    createdAt: tx.created_at ?? undefined,
+    paidAt: tx.paid_at ?? undefined,
     amount: fromMinorUnits(tx.amount),
     currency: tx.currency,
     description: tx.description ?? undefined,
