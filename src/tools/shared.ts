@@ -17,8 +17,8 @@ export const rangeShape = {
     .describe("Defaults to all: credit_card, alternative, erip"),
 };
 
-export const READ_ONLY = { readOnlyHint: true, openWorldHint: true } as const;
-export const WRITES_FILE = { readOnlyHint: false, destructiveHint: false, openWorldHint: true } as const;
+export const READ_ONLY = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true } as const;
+export const WRITES_FILE = { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true } as const;
 export const CREATES_PAYMENT = { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true } as const;
 
 type RangeArgs = {

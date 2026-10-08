@@ -158,6 +158,16 @@ describe("with roster module", () => {
     );
   });
 
+  it("sets all four tool hints explicitly (directories reject tools with missing hints)", async () => {
+    const client = await connect();
+    const { tools } = await client.listTools();
+    for (const tool of tools) {
+      for (const hint of ["readOnlyHint", "destructiveHint", "idempotentHint", "openWorldHint"] as const) {
+        expect(typeof tool.annotations?.[hint], `${tool.name}.${hint}`).toBe("boolean");
+      }
+    }
+  });
+
   it("reports payments by group", async () => {
     const client = await connect();
     const { data } = await call(client, "roster_payments_by_group", { from: "2026-09-01", to: "2026-09-30" });

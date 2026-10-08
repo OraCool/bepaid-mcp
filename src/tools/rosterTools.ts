@@ -14,7 +14,7 @@ import { CREATES_PAYMENT, READ_ONLY, WRITES_FILE, expiresIn, linkTestMode, range
 // Optional roster module: registered only when ROSTER_XLSX_PATH is set.
 // Maps payments to groups/payers of a roster workbook and creates per-payer payment links.
 
-const ROSTER_READ_ONLY = { readOnlyHint: true, openWorldHint: false } as const;
+const ROSTER_READ_ONLY = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } as const;
 
 export function registerRosterTools(server: McpServer, ctx: ToolContext) {
   server.registerTool(
